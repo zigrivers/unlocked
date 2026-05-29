@@ -274,7 +274,9 @@ h1,h2,h3{font-family:var(--serif); font-weight:600; line-height:1.05; letter-spa
   padding:22px 22px calc(26px + env(safe-area-inset-bottom)); animation:slideup .3s var(--ease); max-height:86vh; overflow-y:auto}
 .sheet h3{font-size:1.3rem; margin-bottom:6px}
 .sheet p{color:var(--muted); font-size:.9rem; margin-bottom:10px}
-.sheet .grab{width:38px; height:4px; border-radius:2px; background:var(--line2); margin:0 auto 16px}
+.sheet .grab{width:42px; height:5px; border-radius:3px; background:var(--line2); margin:0 auto 16px; cursor:pointer}
+.sheetclose{position:absolute; top:12px; right:14px; width:34px; height:34px; border-radius:50%; background:var(--surface3); border:1px solid var(--line2); color:var(--muted); font-size:1rem; z-index:2; display:grid; place-items:center}
+.sheet{position:relative}
 .note-list{list-style:none}
 .note-list li{padding:11px 0; border-top:1px solid var(--line); font-size:.9rem; display:flex; gap:10px}
 .note-list li:first-child{border-top:none}
@@ -1277,7 +1279,111 @@ const DOC = {
     start:{lean:2,legs:[{t:-6,s:8,f:150},{t:2,s:2,f:135}],arms:[{u:6,e:8},{u:-6,e:-8}]},
     end:{lean:2,legs:[{t:-6,s:6,f:100},{t:2,s:2,f:78}],arms:[{u:6,e:8},{u:-6,e:-8}]},
     arrows:["M40 60 L40 90"],
-    steps:[{k:"Set up",v:"Stand on a step, balls of the feet on the edge."},{k:"Move",v:"Rise on both feet, shift onto one, then lower that heel slowly below the step over 3 seconds."},{k:"Cue",v:"Slow, controlled lowering — push back up with both feet."},{k:"Avoid",v:"Sharp tendon pain; reduce range and add load over weeks."}]}
+    steps:[{k:"Set up",v:"Stand on a step, balls of the feet on the edge."},{k:"Move",v:"Rise on both feet, shift onto one, then lower that heel slowly below the step over 3 seconds."},{k:"Cue",v:"Slow, controlled lowering — push back up with both feet."},{k:"Avoid",v:"Sharp tendon pain; reduce range and add load over weeks."}]},
+
+  /* ===== seated / floor mobility ===== */
+  seatedfold:{view:"side",aria:"Seated forward fold over straight legs",
+    start:{lean:4,legs:[{t:92,s:90,f:150},{t:92,s:90,f:150}],arms:[{u:60,e:80},{u:60,e:80}]},
+    end:{lean:54,legs:[{t:92,s:90,f:150},{t:92,s:90,f:150}],arms:[{u:78,e:96},{u:78,e:96}]},
+    arrows:["M150 36 q26 16 40 40"],
+    steps:[{k:"Set up",v:"Sit tall, legs straight out in front, sit on a cushion if your back rounds."},{k:"Move",v:"Hinge forward from the hips and reach toward your feet, keeping the back long."},{k:"Cue",v:"Lead with the chest, not by rounding the spine."},{k:"Avoid",v:"Yanking — ease into a steady stretch, knees soft if needed."}]},
+  pancake:{view:"front",aria:"Seated wide-legged pancake forward fold",
+    start:{lean:4,legs:[{t:62,s:64,f:120},{t:-62,s:-64,f:120}],arms:[{u:30,e:40},{u:-30,e:-40}]},
+    end:{lean:46,legs:[{t:62,s:64,f:120},{t:-62,s:-64,f:120}],arms:[{u:50,e:62},{u:-50,e:-62}]},
+    arrows:["M110 34 L110 60"],
+    steps:[{k:"Set up",v:"Sit with legs wide and straight, toes up, on a cushion if needed."},{k:"Move",v:"Hinge forward from the hips, walking the hands out, chest leading."},{k:"Cue",v:"Keep the knees pointing up and the back long."},{k:"Avoid",v:"Rounding hard at the low back — go only as far as the hips allow."}]},
+  butterfly:{view:"front",aria:"Seated butterfly with soles together, folding forward",
+    start:{lean:4,legs:[{t:48,s:128,f:150},{t:-48,s:-128,f:150}],arms:[{u:80,e:120},{u:-80,e:-120}]},
+    end:{lean:34,legs:[{t:48,s:128,f:150},{t:-48,s:-128,f:150}],arms:[{u:70,e:110},{u:-70,e:-110}]},
+    arrows:["M110 40 L110 64"],
+    steps:[{k:"Set up",v:"Sit tall, bring the soles of the feet together, knees falling open."},{k:"Move",v:"Hold the feet and gently hinge forward from the hips."},{k:"Cue",v:"Let the knees relax toward the floor; sit on a cushion to sit taller."},{k:"Avoid",v:"Forcing the knees down with the elbows."}]},
+  ninety:{view:"side",aria:"Seated 90/90 hip rotation stretch",
+    start:{lean:6,legs:[{t:64,s:8,f:60},{t:96,s:150,f:150}],arms:[{u:70,e:60},{u:70,e:60}]},
+    end:{lean:34,legs:[{t:64,s:8,f:60},{t:96,s:150,f:150}],arms:[{u:86,e:80},{u:86,e:80}]},
+    arrows:["M150 40 q24 14 36 34"],
+    steps:[{k:"Set up",v:"Sit with your front shin and back shin each bent ~90°, both on the floor."},{k:"Move",v:"Sit tall over the front hip, then hinge your chest toward the front shin."},{k:"Cue",v:"Feel the front-hip glute and the back-hip front; keep both sit-bones grounded."},{k:"Avoid",v:"Collapsing the spine — hinge from the hips."}]},
+  ninetylift:{view:"side",aria:"Active 90/90 with the back knee lifting off the floor",
+    start:{lean:6,legs:[{t:64,s:8,f:60},{t:96,s:150,f:150}],arms:[{u:30,e:30},{u:30,e:30}]},
+    end:{lean:6,legs:[{t:64,s:8,f:60},{t:78,s:150,f:150}],arms:[{u:30,e:30},{u:30,e:30}]},
+    arrows:["M150 70 L150 50"],
+    steps:[{k:"Set up",v:"Sit in your 90/90, hands lightly down for balance."},{k:"Move",v:"Using your own muscle, lift the back-leg knee off the floor, hold, then lower with control."},{k:"Cue",v:"Drive the lift from the hip rotators — small range is fine."},{k:"Avoid",v:"Pushing through the hands; let the hip do the work."}]},
+  ninetypails:{view:"side",aria:"90/90 end-range isometric contraction",
+    start:{lean:30,legs:[{t:64,s:8,f:60},{t:96,s:150,f:150}],arms:[{u:80,e:74},{u:80,e:74}]},
+    end:{lean:38,legs:[{t:64,s:8,f:60},{t:96,s:150,f:150}],arms:[{u:86,e:80},{u:86,e:80}]},
+    steps:[{k:"Set up",v:"Fold into your deepest comfortable 90/90."},{k:"Move",v:"Gently press the shin down into the floor, building over ~10 sec (PAILs), then pull to deepen (RAILs)."},{k:"Cue",v:"Breathe steadily; ramp the effort, never jerk."},{k:"Avoid",v:"Max effort cold — build intensity over weeks."}]},
+  pigeon:{view:"side",aria:"Pigeon pose, front shin folded, back leg extended, folding forward",
+    start:{lean:14,legs:[{t:70,s:150,f:150},{t:-66,s:-104,f:90}],arms:[{u:64,e:40},{u:64,e:40}]},
+    end:{lean:46,legs:[{t:70,s:150,f:150},{t:-66,s:-104,f:90}],arms:[{u:80,e:60},{u:80,e:60}]},
+    arrows:["M150 44 q22 14 32 34"],
+    steps:[{k:"Set up",v:"Bring the front shin across in front of you; extend the other leg straight back."},{k:"Move",v:"Square the hips forward, then fold your chest over the front leg. (Lie on your back in a figure-4 if the knee complains.)"},{k:"Cue",v:"Feel it in the front-leg glute, not the knee."},{k:"Avoid",v:"Dumping into one hip — keep the hips level."}]},
+  frog:{view:"side",aria:"Quadruped frog stretch rocking the hips back",
+    start:{lean:90,legs:[{t:6,s:-150,f:40},{t:6,s:-150,f:40}],arms:[{u:0,e:0},{u:0,e:0}]},
+    end:{lean:86,legs:[{t:40,s:-150,f:40},{t:40,s:-150,f:40}],arms:[{u:18,e:18},{u:18,e:18}]},
+    arrows:["M150 64 q22 0 34 12"],
+    steps:[{k:"Set up",v:"On all fours, widen the knees, shins in line with the knees, feet turned out."},{k:"Move",v:"Keeping a flat back, rock the hips slowly back toward the heels, then forward."},{k:"Cue",v:"Move only into a comfortable inner-thigh stretch; pad the knees."},{k:"Avoid",v:"Forcing the range or letting the low back sag."}]},
+  catcow:{view:"side",aria:"Quadruped cat-cow spinal flexion and extension",
+    start:{lean:90,legs:[{t:2,s:-150,f:40},{t:2,s:-150,f:40}],arms:[{u:0,e:0},{u:0,e:0}]},
+    end:{lean:96,legs:[{t:2,s:-150,f:40},{t:2,s:-150,f:40}],arms:[{u:-4,e:-4},{u:-4,e:-4}]},
+    steps:[{k:"Set up",v:"On all fours, hands under shoulders, knees under hips."},{k:"Move",v:"Alternate arching the spine and lifting the gaze (cow), then rounding the back and tucking the chin (cat)."},{k:"Cue",v:"Move with your breath, one vertebra at a time."},{k:"Avoid",v:"Rushing — keep it slow and smooth."}]},
+  adductorrock:{view:"side",aria:"Half-kneeling adductor rock-back with one leg out to the side",
+    start:{lean:90,legs:[{t:6,s:-150,f:40},{t:96,s:96,f:150}],arms:[{u:6,e:6},{u:6,e:6}]},
+    end:{lean:84,legs:[{t:40,s:-150,f:40},{t:96,s:96,f:150}],arms:[{u:24,e:24},{u:24,e:24}]},
+    arrows:["M150 66 q20 0 32 12"],
+    steps:[{k:"Set up",v:"From all fours, extend one leg straight out to the side, foot flat."},{k:"Move",v:"Rock the hips back toward the kneeling heel, feeling the inner thigh of the straight leg."},{k:"Cue",v:"Keep the side foot grounded and the back flat."},{k:"Avoid",v:"Bouncing; ease back and forth slowly."}]},
+  halfkneel:{view:"side",aria:"Half-kneeling hip flexor stretch",
+    start:{lean:4,legs:[{t:-42,s:-150,f:90},{t:46,s:2,f:100}],arms:[{u:8,e:10},{u:8,e:10}]},
+    end:{lean:10,legs:[{t:-50,s:-150,f:90},{t:52,s:6,f:100}],arms:[{u:150,e:170},{u:8,e:10}]},
+    arrows:["M150 70 q16 8 22 22"],
+    steps:[{k:"Set up",v:"Kneel on one knee, other foot planted in front, tall posture (pad the down knee)."},{k:"Move",v:"Tuck the tailbone, squeeze the down-side glute, and shift gently forward."},{k:"Cue",v:"Reach the same-side arm overhead and lean slightly away to deepen."},{k:"Avoid",v:"Arching the low back instead of tucking the pelvis."}]},
+  couch:{view:"side",aria:"Couch stretch with the back shin raised against a wall",
+    start:{lean:8,legs:[{t:-20,s:-176,f:70},{t:48,s:4,f:100}],arms:[{u:10,e:12},{u:10,e:12}]},
+    end:{lean:0,legs:[{t:-20,s:-176,f:70},{t:54,s:8,f:100}],arms:[{u:6,e:8},{u:6,e:8}]},
+    arrows:["M44 70 q-8 -16 0 -30"],
+    steps:[{k:"Set up",v:"Place the back shin up a wall or couch, front foot planted, back knee padded."},{k:"Move",v:"Squeeze the glute and tuck the tailbone, then bring the torso more upright."},{k:"Cue",v:"Feel the front of the back hip and thigh — never the knee or low back."},{k:"Avoid",v:"Pushing into knee pain; back off and use padding."}]},
+  couchpails:{view:"side",aria:"Couch stretch with an end-range contraction",
+    start:{lean:2,legs:[{t:-20,s:-176,f:70},{t:52,s:6,f:100}],arms:[{u:8,e:10},{u:8,e:10}]},
+    end:{lean:0,legs:[{t:-20,s:-176,f:70},{t:54,s:8,f:100}],arms:[{u:6,e:8},{u:6,e:8}]},
+    steps:[{k:"Set up",v:"Settle into your deepest comfortable couch stretch."},{k:"Move",v:"Gently press the back knee down into the floor for ~10 sec, then squeeze the glute to deepen."},{k:"Cue",v:"Build the contraction gradually and breathe."},{k:"Avoid",v:"Sudden max force — ramp it up over time."}]},
+  lizard:{view:"side",aria:"Lizard lunge with forearms lowering toward the floor",
+    start:{lean:40,legs:[{t:48,s:0,f:100},{t:-58,s:-110,f:80}],arms:[{u:30,e:20},{u:30,e:20}]},
+    end:{lean:54,legs:[{t:50,s:2,f:100},{t:-60,s:-112,f:80}],arms:[{u:46,e:36},{u:46,e:36}]},
+    arrows:["M150 50 q14 12 18 28"],
+    steps:[{k:"Set up",v:"From a deep lunge, place both hands inside the front foot."},{k:"Move",v:"Drop the hips and, if comfortable, lower onto your forearms."},{k:"Cue",v:"Feel the front hip and inner thigh; keep the back leg long."},{k:"Avoid",v:"Letting the front knee collapse inward."}]},
+  worldsgreat:{view:"side",aria:"World's greatest stretch: deep lunge with a thoracic rotation",
+    start:{lean:34,legs:[{t:48,s:0,f:100},{t:-58,s:-110,f:80}],arms:[{u:36,e:26},{u:30,e:20}]},
+    end:{lean:18,legs:[{t:48,s:0,f:100},{t:-58,s:-110,f:80}],arms:[{u:185,e:185},{u:40,e:30}]},
+    arrows:["M150 44 q18 -10 14 -34"],
+    steps:[{k:"Set up",v:"Step into a deep lunge, back knee hovering, same-side hand down by the front foot."},{k:"Move",v:"Reach the inside arm to the floor, then rotate it up to the sky, following with your eyes."},{k:"Cue",v:"Open through the upper back; keep the front foot flat."},{k:"Avoid",v:"Rotating from the low back instead of the mid-back."}]},
+  ankledorsi:{view:"side",aria:"Knee-to-wall ankle dorsiflexion drive",
+    start:{lean:8,legs:[{t:-30,s:-150,f:90},{t:18,s:6,f:100}],arms:[{u:8,e:10},{u:8,e:10}]},
+    end:{lean:14,legs:[{t:-30,s:-150,f:90},{t:40,s:30,f:100}],arms:[{u:8,e:10},{u:8,e:10}]},
+    arrows:["M150 84 q18 -2 26 8"],
+    steps:[{k:"Set up",v:"Place your front foot a few inches from a wall, heel down."},{k:"Move",v:"Drive the front knee forward past the toes to touch the wall, keeping the heel glued down; rock in and out."},{k:"Cue",v:"If it touches easily, move the foot back; track the knee over the toes."},{k:"Avoid",v:"Letting the heel lift."}]},
+  hipairplane:{view:"side",aria:"Single-leg hinge with the pelvis rotating open and closed",
+    start:{lean:70,legs:[{t:6,s:2,f:100},{t:-70,s:-70,f:80}],arms:[{u:96,e:96},{u:-96,e:-96}]},
+    end:{lean:70,legs:[{t:6,s:2,f:100},{t:-86,s:-70,f:80}],arms:[{u:96,e:96},{u:-96,e:-96}]},
+    arrows:["M150 60 q16 6 18 22"],
+    steps:[{k:"Set up",v:"Hinge forward balancing on one leg, arms out wide, back leg extended behind."},{k:"Move",v:"Slowly rotate the pelvis open toward the ceiling, then back closed, controlling the standing hip."},{k:"Cue",v:"Move slowly; hold a wall lightly if you need balance."},{k:"Avoid",v:"Twisting the spine instead of rotating the hip."}]},
+  glutebridge:{view:"side",aria:"Glute bridge lifting the hips from the floor",
+    start:{lean:-90,legs:[{t:60,s:170,f:60},{t:60,s:170,f:60}],arms:[{u:96,e:96},{u:96,e:96}]},
+    end:{lean:-118,legs:[{t:52,s:166,f:50},{t:52,s:166,f:50}],arms:[{u:100,e:100},{u:100,e:100}]},
+    arrows:["M70 70 L70 50"],
+    steps:[{k:"Set up",v:"Lie on your back, knees bent, feet flat and hip-width."},{k:"Move",v:"Drive through the heels and squeeze the glutes to lift the hips into a straight line, then lower."},{k:"Cue",v:"Push the hips up with the glutes, not by arching the back."},{k:"Avoid",v:"Hyperextending the low back at the top."}]},
+  hipthrust:{view:"side",aria:"Hip thrust driving the hips up from a bench",
+    start:{lean:-96,legs:[{t:58,s:168,f:55},{t:58,s:168,f:55}],arms:[{u:150,e:150},{u:150,e:150}]},
+    end:{lean:-126,legs:[{t:50,s:164,f:48},{t:50,s:164,f:48}],arms:[{u:150,e:150},{u:150,e:150}]},
+    arrows:["M70 68 L70 46"],
+    steps:[{k:"Set up",v:"Upper back on a bench/couch, weight across the hips, feet planted."},{k:"Move",v:"Drive the hips up to a flat tabletop, squeezing the glutes hard at the top, then lower."},{k:"Cue",v:"Ribs down, chin tucked; finish with the glutes, not the low back."},{k:"Avoid",v:"Over-arching or pushing through the toes."}]},
+  hamstrap:{view:"side",aria:"Supine hamstring stretch with a strap, one leg raised",
+    start:{lean:-90,legs:[{t:96,s:96,f:60},{t:60,s:150,f:60}],arms:[{u:70,e:70},{u:70,e:70}]},
+    end:{lean:-90,legs:[{t:120,s:120,f:60},{t:60,s:150,f:60}],arms:[{u:74,e:74},{u:74,e:74}]},
+    arrows:["M150 70 q6 -18 -6 -32"],
+    steps:[{k:"Set up",v:"Lie on your back, loop a strap or belt around one foot."},{k:"Move",v:"Straighten that leg toward the sky, keeping the strap gently taut, other leg long or bent."},{k:"Cue",v:"Feel it in the belly of the hamstring, not behind the knee."},{k:"Avoid",v:"Bending the knee to cheat the height — keep it long."}]},
+  deadbug:{view:"side",aria:"Dead bug: supine, lowering opposite arm and leg",
+    start:{lean:-90,legs:[{t:118,s:60,f:60},{t:118,s:60,f:60}],arms:[{u:60,e:60},{u:60,e:60}]},
+    end:{lean:-90,legs:[{t:118,s:60,f:60},{t:150,s:150,f:60}],arms:[{u:60,e:60},{u:30,e:30}]},
+    arrows:["M150 60 q18 6 26 18"],
+    steps:[{k:"Set up",v:"Lie on your back, arms reaching up, knees stacked over the hips."},{k:"Move",v:"Slowly lower the opposite arm and leg toward the floor, then return and switch."},{k:"Cue",v:"Keep the low back pressed flat to the floor the whole time."},{k:"Avoid",v:"Letting the back arch up as the leg lowers."}]}
 };
 
 /* ordered warm-up reference (reuses verified EX videos where the move exists in the library) */
@@ -1356,9 +1462,17 @@ function tick(){ if(!S.settings.sound)return; try{AC=AC||new (window.AudioContex
 /* =================================================================================== */
 /* SHEETS / MENU / ACTIONS                                                             */
 /* =================================================================================== */
-function openSheet(html){ overlay.innerHTML=`<div class="sheet-wrap" data-close="1"><div class="sheet stagger"><div class="grab"></div>${html}</div></div>`;
-  overlay.querySelector("[data-close]").onclick=e=>{ if(e.target.dataset.close) overlay.innerHTML=""; };
+function openSheet(html){
+  overlay.innerHTML=`<div class="sheet-wrap" data-close="1"><div class="sheet stagger" id="sheet"><button class="sheetclose" data-close="1" aria-label="Close">✕</button><div class="grab" data-close="1"></div>${html}</div></div>`;
+  const wrap=overlay.querySelector(".sheet-wrap"), sheet=overlay.querySelector("#sheet");
+  const close=()=>{ overlay.innerHTML=""; };
+  wrap.addEventListener("click",e=>{ if(e.target.dataset && e.target.dataset.close) close(); });
   overlay.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>handleAct(b.dataset.act));
+  // swipe-down-to-dismiss (engages only when the sheet is scrolled to the top)
+  let y0=null,dy=0,drag=false;
+  sheet.addEventListener("touchstart",e=>{ if(sheet.scrollTop<=0){ y0=e.touches[0].clientY; drag=true; dy=0; sheet.style.transition="none"; } },{passive:true});
+  sheet.addEventListener("touchmove",e=>{ if(!drag||y0==null)return; dy=e.touches[0].clientY-y0; if(dy>0) sheet.style.transform=`translateY(${dy}px)`; },{passive:true});
+  sheet.addEventListener("touchend",()=>{ if(!drag)return; drag=false; sheet.style.transition=""; if(dy>90) close(); else sheet.style.transform=""; y0=null; dy=0; });
 }
 function menuSheet(){ openSheet(`
   <h3>Unlocked</h3>
