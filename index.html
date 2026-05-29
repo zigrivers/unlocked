@@ -236,6 +236,20 @@ h1,h2,h3{font-family:var(--serif); font-weight:600; line-height:1.05; letter-spa
 .prevdose{font-size:.76rem; color:var(--gold); font-weight:700; margin:3px 0 2px; letter-spacing:.02em}
 .prevcard .cuebox{margin-top:9px}
 .prevnote{flex:1; font-size:.9rem; color:var(--muted); background:var(--surface); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:11px 13px}
+/* exercise diagrams + step instructions */
+.diagwrap{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:8px 8px 5px; margin:10px 0}
+.diagram{width:100%; max-width:300px; height:auto; display:block; margin:0 auto}
+.diaglabel{display:flex; justify-content:space-around; font-size:.58rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted2); margin-top:3px}
+.steps{list-style:none; counter-reset:s; margin:10px 0 2px; padding:0}
+.steps li{position:relative; padding:7px 0 7px 28px; font-size:.85rem; line-height:1.45; border-top:1px solid var(--line)}
+.steps li:first-child{border-top:none}
+.steps li::before{counter-increment:s; content:counter(s); position:absolute; left:0; top:7px; width:19px; height:19px; border-radius:50%; background:var(--surface3); color:var(--lime); font-size:.64rem; font-weight:800; display:grid; place-items:center}
+.steps li b{color:var(--text)}
+.wcard{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 15px; margin-bottom:12px}
+.whead{display:flex; align-items:center; gap:12px}
+.wnum{flex:0 0 30px; width:30px; height:30px; border-radius:50%; background:var(--lime-glow); color:var(--lime); font-weight:800; display:grid; place-items:center; font-size:.95rem}
+.wname{font-family:var(--serif); font-weight:600; font-size:1.08rem; line-height:1.1}
+.wdose{font-size:.74rem; color:var(--gold); font-weight:700; margin-top:2px}
 
 /* finish screen */
 .finish{text-align:center; padding:30px 26px}
@@ -1017,6 +1031,7 @@ function renderPreview(){
     return `<div class="prevcard"><div class="prevnum">${n}</div><div class="prevbody">
       <div class="prevname">${ex.i} ${ex.n}</div>
       <div class="prevdose">${doseLabel(it)} · ${ex.t}</div>
+      ${docBlock(it.x)}
       ${cueHTML(ex)}
     </div></div>`;
   }).join("");
@@ -1144,6 +1159,137 @@ function cueHTML(ex){
     <div class="rp"><b style="color:var(--muted)">Easier:</b> ${ex.r} &nbsp;·&nbsp; <b style="color:var(--muted)">Harder:</b> ${ex.p}</div>
     <a class="vid" href="${vidHref(ex.v)}" target="_blank" rel="noopener">${vidLabel(ex.v)}</a></div>`;
 }
+
+/* =================================================================================== */
+/* EXERCISE DIAGRAMS — reusable parametric stick-figure renderer                       */
+/* Angles are degrees from straight-DOWN; + rotates toward the front (+x).             */
+/* A pose = {lean, legs:[{t,s,f},{t,s,f}], arms:[{u,e},{u,e}]}.  legs[0]/arms[0] = far */
+/* limb (dimmed in side view). A diagram = {view:'side'|'front', start, end, arrows[]} */
+/* steps:[{k,v}].  To add a drill: add an entry to DOC keyed by its exercise id.       */
+/* =================================================================================== */
+const FIG={TH:24,SH:24,FT:13,TOR:34,UA:17,FA:16,HR:8,NK:10,W:7};
+function _seg(p,l,a){const r=a*Math.PI/180;return {x:p.x+l*Math.sin(r), y:p.y+l*Math.cos(r)};}
+function _figure(pose, ox, floorY, view, bright){
+  const F=FIG, pel={x:ox,y:0}, tA=180-(pose.lean||0);
+  const sh=_seg(pel,F.TOR,tA), hd=_seg(sh,F.NK+F.HR,tA);
+  const legs=(pose.legs||[]).map(L=>{const k=_seg(pel,F.TH,L.t),a=_seg(k,F.SH,L.s),t=_seg(a,F.FT,(L.f==null?100:L.f));return [pel,k,a,t];});
+  const arms=(pose.arms||[]).map(A=>{const e=_seg(sh,F.UA,A.u),w=_seg(e,F.FA,(A.e==null?A.u:A.e));return [sh,e,w];});
+  let pts=[pel,sh,hd]; legs.forEach(L=>pts.push(...L)); arms.forEach(A=>pts.push(...A));
+  const dy=floorY-Math.max(...pts.map(p=>p.y));
+  const col=bright?"#c3f53b":"#79847a", op=bright?1:0.5;
+  const P=p=>`${p.x.toFixed(1)} ${(p.y+dy).toFixed(1)}`;
+  const poly=(arr,o)=>`<polyline points="${arr.map(P).join(' ')}" fill="none" stroke="${col}" stroke-width="${F.W}" stroke-linecap="round" stroke-linejoin="round" opacity="${o}"/>`;
+  const farOp = view==="side" ? op*0.4 : op;
+  let s="";
+  if(arms[0]) s+=poly(arms[0],farOp);
+  if(legs[0]) s+=poly(legs[0],farOp);
+  s+=poly([pel,sh],op);
+  s+=`<circle cx="${hd.x.toFixed(1)}" cy="${(hd.y+dy).toFixed(1)}" r="${F.HR}" fill="${col}" opacity="${op}"/>`;
+  if(legs[1]) s+=poly(legs[1],op);
+  if(arms[1]) s+=poly(arms[1],op);
+  s+=`<line x1="${ox-22}" y1="${floorY+4}" x2="${ox+22}" y2="${floorY+4}" stroke="#2c332d" stroke-width="2" stroke-linecap="round"/>`;
+  return s;
+}
+function diagramSVG(d){
+  if(!d||!d.start) return "";
+  const floorY=120, LX=56, RX=164;
+  const defs=`<defs>
+    <marker id="ag" markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#f0b429"/></marker>
+    <marker id="al" markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#c3f53b"/></marker></defs>`;
+  let extra="";
+  (d.arrows||[]).forEach(p=>{ extra+=`<path d="${p}" fill="none" stroke="#c3f53b" stroke-width="2.4" stroke-linecap="round" marker-end="url(#al)" opacity="0.95"/>`; });
+  const between=`<path d="M101 58 q9 -9 19 0" fill="none" stroke="#f0b429" stroke-width="2.4" marker-end="url(#ag)"/>`;
+  return `<svg class="diagram" viewBox="0 0 220 145" role="img" aria-label="${d.aria||'exercise start and finish positions'}">${defs}${_figure(d.start,LX,floorY,d.view,false)}${_figure(d.end,RX,floorY,d.view,true)}${between}${extra}</svg>`;
+}
+function docBlock(id){
+  const d=DOC[id]; if(!d) return "";
+  let s=`<div class="diagwrap">${diagramSVG(d)}<div class="diaglabel"><span>start</span><span>finish</span></div></div>`;
+  if(d.steps&&d.steps.length) s+=`<ol class="steps">${d.steps.map(x=>`<li><b>${x.k}.</b> ${x.v}</li>`).join("")}</ol>`;
+  return s;
+}
+
+/* ---- diagram + step data (reusable; keyed by exercise/warm-up id) ----
+   COVERAGE: fully authored = the 7 warm-up moves + high-value standing drills
+   (deepsquat, goblet, rdl, splitsquat, bulgarian, calfecc). Every other drill
+   gracefully falls back to its written cue + demo video until authored here. */
+const DOC = {
+  /* ===== warm-up ===== */
+  march:{view:"side",aria:"Marching in place, driving alternate knees up",
+    start:{lean:4,legs:[{t:-3,s:-3,f:100},{t:60,s:120,f:118}],arms:[{u:32,e:46},{u:-28,e:-18}]},
+    end:{lean:4,legs:[{t:62,s:122,f:118},{t:-3,s:-3,f:100}],arms:[{u:-28,e:-18},{u:32,e:46}]},
+    steps:[{k:"Set up",v:"Stand tall, eyes ahead, arms relaxed."},{k:"Move",v:"March or lightly jog on the spot, driving each knee up to hip height; swing the opposite arm."},{k:"Cue",v:"Land soft and quiet on the balls of your feet; build from a walk to a light jog."},{k:"Avoid",v:"Slumping or stomping — stay tall and springy."}]},
+  legswing:{view:"side",aria:"Leg swinging forward and back from a standing position",
+    start:{lean:6,legs:[{t:2,s:2,f:100},{t:-38,s:-32,f:78}],arms:[{u:-12,e:-10},{u:14,e:12}]},
+    end:{lean:4,legs:[{t:2,s:2,f:100},{t:46,s:58,f:112}],arms:[{u:14,e:12},{u:-12,e:-10}]},
+    arrows:["M150 92 q14 -34 0 -64"],
+    steps:[{k:"Set up",v:"Hold a wall or post for balance; stand on one leg."},{k:"Move",v:"Swing the free leg forward and back like a relaxed pendulum, then do a set swinging it across your body and out."},{k:"Cue",v:"Let momentum grow the range gradually — keep the torso still."},{k:"Avoid",v:"Forcing height or arching the low back; the hips do the work."}]},
+  bwsquat:{view:"side",aria:"Bodyweight squat from standing to the bottom position",
+    start:{lean:4,legs:[{t:4,s:3,f:100},{t:-4,s:-3,f:100}],arms:[{u:8,e:12},{u:8,e:12}]},
+    end:{lean:26,legs:[{t:52,s:-18,f:96},{t:52,s:-18,f:96}],arms:[{u:70,e:78},{u:70,e:78}]},
+    arrows:["M40 60 q-10 26 0 50"],
+    steps:[{k:"Set up",v:"Feet shoulder-width, toes slightly out, chest tall."},{k:"Move",v:"Sit the hips down and back to a comfortable full depth, then drive up through the whole foot."},{k:"Cue",v:"Knees track out over the toes; reach the arms forward to counterbalance."},{k:"Avoid",v:"Heels lifting or knees caving in."}]},
+  lateral_lunge:{view:"front",aria:"Lateral lunge shifting the weight onto a bent leg",
+    start:{lean:0,legs:[{t:-16,s:-10,f:100},{t:16,s:10,f:100}],arms:[{u:-14,e:-20},{u:14,e:20}]},
+    end:{lean:16,legs:[{t:-36,s:-36,f:100},{t:30,s:8,f:100}],arms:[{u:34,e:46},{u:8,e:12}]},
+    arrows:["M150 70 q24 6 40 22"],
+    steps:[{k:"Set up",v:"Stand with feet wide, toes forward, hands at chest."},{k:"Move",v:"Shift your weight to one side, sitting that hip back and bending the knee while the other leg stays long."},{k:"Cue",v:"Keep both heels down; push back to the middle and switch sides."},{k:"Avoid",v:"Letting the bent knee collapse inward."}]},
+  calfraise:{view:"side",aria:"Calf raise rising onto the toes, then a slow heel lower",
+    start:{lean:2,legs:[{t:2,s:2,f:100},{t:-2,s:-2,f:100}],arms:[{u:6,e:8},{u:-6,e:-8}]},
+    end:{lean:2,legs:[{t:2,s:6,f:138},{t:-2,s:2,f:138}],arms:[{u:6,e:8},{u:-6,e:-8}]},
+    arrows:["M40 78 q-9 -16 0 -30"],
+    steps:[{k:"Set up",v:"Stand tall, feet hip-width (hold a wall if needed)."},{k:"Move",v:"Rise up onto the balls of both feet, then do a few single-leg reps lowering the heel slowly (3 sec) below level off a step."},{k:"Cue",v:"Control the lower — that slow eccentric is what protects the Achilles."},{k:"Avoid",v:"Bouncing or rushing the heel down."}]},
+  skater:{view:"front",aria:"Lateral skater bound, landing and balancing on one leg",
+    start:{lean:14,legs:[{t:-44,s:-78,f:60},{t:10,s:6,f:100}],arms:[{u:42,e:54},{u:-32,e:-44}]},
+    end:{lean:-14,legs:[{t:-10,s:-6,f:100},{t:44,s:78,f:140}],arms:[{u:32,e:44},{u:-42,e:-54}]},
+    steps:[{k:"Set up",v:"Start in an athletic stance, knees soft."},{k:"Move",v:"Push off one leg and bound sideways onto the other, sticking a balanced landing; then bound back. Keep it easy and controlled to warm up."},{k:"Cue",v:"Land soft on a bent knee and pause for balance before the next bound."},{k:"Avoid",v:"Stiff, noisy landings or letting the knee cave in."}]},
+  splitstep:{view:"front",aria:"Athletic split-step hop into a low ready stance",
+    start:{lean:0,legs:[{t:-7,s:-4,f:100},{t:7,s:4,f:100}],arms:[{u:-8,e:-12},{u:8,e:12}]},
+    end:{lean:0,legs:[{t:-22,s:-10,f:100},{t:22,s:10,f:100}],arms:[{u:-26,e:-38},{u:26,e:38}]},
+    arrows:["M110 30 L110 52"],
+    steps:[{k:"Set up",v:"Stand ready, weight on the balls of your feet."},{k:"Move",v:"Do a small hop and land in a wide, low athletic stance — then explode a quick first step. Mix in a few side shuffles and backpedals."},{k:"Cue",v:"Land light and balanced, ready to move any direction."},{k:"Avoid",v:"Standing upright or crossing the feet when you shuffle."}]},
+  /* ===== high-value program drills ===== */
+  deepsquat:{view:"side",aria:"Sinking into a deep squat hold",
+    start:{lean:6,legs:[{t:5,s:3,f:100},{t:-5,s:-3,f:100}],arms:[{u:8,e:12},{u:8,e:12}]},
+    end:{lean:28,legs:[{t:58,s:-22,f:94},{t:58,s:-22,f:94}],arms:[{u:64,e:30},{u:64,e:30}]},
+    arrows:["M40 60 q-10 28 0 52"],
+    steps:[{k:"Set up",v:"Feet shoulder-width, toes turned slightly out."},{k:"Move",v:"Sink all the way to the bottom, heels down, and settle in. Use your elbows to gently pry the knees apart."},{k:"Cue",v:"Stay tall through the chest; breathe and relax deeper."},{k:"Avoid",v:"Knee pain — sit on a cushion or raise the heels if needed."}]},
+  goblet:{view:"side",aria:"Goblet squat holding a weight at the chest",
+    start:{lean:6,legs:[{t:5,s:3,f:100},{t:-5,s:-3,f:100}],arms:[{u:120,e:150},{u:120,e:150}]},
+    end:{lean:18,legs:[{t:52,s:-16,f:96},{t:52,s:-16,f:96}],arms:[{u:120,e:150},{u:120,e:150}]},
+    arrows:["M40 64 q-9 24 0 46"],
+    steps:[{k:"Set up",v:"Hold a dumbbell or kettlebell at your chest, elbows down."},{k:"Move",v:"Squat down between your hips to depth, then drive up through the whole foot."},{k:"Cue",v:"Chest tall, knees tracking over the toes."},{k:"Avoid",v:"Rounding the back or knees caving in."}]},
+  rdl:{view:"side",aria:"Romanian deadlift hip hinge",
+    start:{lean:6,legs:[{t:3,s:2,f:100},{t:-3,s:-2,f:100}],arms:[{u:6,e:6},{u:6,e:6}]},
+    end:{lean:64,legs:[{t:6,s:0,f:100},{t:-6,s:0,f:100}],arms:[{u:2,e:2},{u:2,e:2}]},
+    arrows:["M70 46 q22 6 36 22"],
+    steps:[{k:"Set up",v:"Stand tall holding the weight, knees softly bent."},{k:"Move",v:"Push your hips back and lower the weight down your legs with a flat back, then drive the hips forward to stand."},{k:"Cue",v:"Feel a stretch in the hamstrings; the bar/weights stay close to the legs."},{k:"Avoid",v:"Rounding the low back or squatting instead of hinging."}]},
+  splitsquat:{view:"side",aria:"Split squat lowering the back knee",
+    start:{lean:6,legs:[{t:-26,s:30,f:120},{t:26,s:8,f:100}],arms:[{u:10,e:14},{u:-10,e:-14}]},
+    end:{lean:8,legs:[{t:-30,s:74,f:150},{t:40,s:-6,f:96}],arms:[{u:12,e:16},{u:-12,e:-16}]},
+    arrows:["M56 58 L56 86"],
+    steps:[{k:"Set up",v:"Stagger your stance, one foot forward, torso tall."},{k:"Move",v:"Lower straight down until the back knee nears the floor, then drive up through the front heel."},{k:"Cue",v:"Most of the weight on the front leg; keep the torso upright."},{k:"Avoid",v:"Front knee diving past the toes or knee pain."}]},
+  bulgarian:{view:"side",aria:"Bulgarian split squat with the rear foot elevated",
+    start:{lean:10,legs:[{t:-44,s:64,f:150},{t:20,s:6,f:100}],arms:[{u:10,e:14},{u:-10,e:-14}]},
+    end:{lean:12,legs:[{t:-50,s:96,f:150},{t:42,s:-8,f:96}],arms:[{u:12,e:16},{u:-12,e:-16}]},
+    arrows:["M56 56 L56 84"],
+    steps:[{k:"Set up",v:"Rest the top of your rear foot on a bench behind you."},{k:"Move",v:"Sink straight down over the front leg, then drive up through the front heel."},{k:"Cue",v:"Stay tall; the front leg does the work."},{k:"Avoid",v:"Leaning too far forward or letting the front knee cave."}]},
+  calfecc:{view:"side",aria:"Single-leg eccentric heel drop off a step",
+    start:{lean:2,legs:[{t:-6,s:8,f:150},{t:2,s:2,f:135}],arms:[{u:6,e:8},{u:-6,e:-8}]},
+    end:{lean:2,legs:[{t:-6,s:6,f:100},{t:2,s:2,f:78}],arms:[{u:6,e:8},{u:-6,e:-8}]},
+    arrows:["M40 60 L40 90"],
+    steps:[{k:"Set up",v:"Stand on a step, balls of the feet on the edge."},{k:"Move",v:"Rise on both feet, shift onto one, then lower that heel slowly below the step over 3 seconds."},{k:"Cue",v:"Slow, controlled lowering — push back up with both feet."},{k:"Avoid",v:"Sharp tendon pain; reduce range and add load over weeks."}]}
+};
+
+/* ordered warm-up reference (reuses verified EX videos where the move exists in the library) */
+const WARMUP = [
+  {id:"march",        name:"March / Light Jog in Place",        dose:"30 sec",                       vid:"march in place warm up drill"},
+  {id:"legswing",     name:EX.legswing.n,                       dose:"10 / side (front-back, then across)", vid:EX.legswing.v},
+  {id:"bwsquat",      name:"Bodyweight Squats",                 dose:"10 reps, full depth",          vid:"bodyweight squat tutorial"},
+  {id:"lateral_lunge",name:EX.lateral_lunge.n,                  dose:"8 / side",                     vid:EX.lateral_lunge.v},
+  {id:"calfraise",    name:"Calf Raises + Slow Heel Drops",     dose:"10 raises + 3 slow / side",    vid:EX.calfecc.v},
+  {id:"skater",       name:EX.skater.n,                         dose:"6 / side (easy)",              vid:EX.skater.v},
+  {id:"splitstep",    name:EX.splitstep.n,                      dose:"20 sec + shuffles & backpedals", vid:EX.splitstep.v}
+];
 function updateRing(){
   const st=P.steps[P.i]; if(!(st.dur>0))return;
   const fg=document.getElementById("ringfg"), t=document.getElementById("ringt");
@@ -1247,19 +1393,19 @@ function importData(){
     r.readAsText(f); };
   inp.click();
 }
-function warmupSheet(){ openSheet(`
-  <h3>Pre-Pickleball Warm-Up</h3>
-  <p>Most 50+ pickleball injuries happen <b>cold, on the first explosive move</b> — 68% of Achilles ruptures strike within a player's first month, many on the first game. Never skip this.</p>
-  <ul class="note-list">
-    <li><b>30s</b> Brisk march / jog on the spot</li>
-    <li><b>10/side</b> Leg swings (front-back, then across)</li>
-    <li><b>10</b> Bodyweight squats, full depth</li>
-    <li><b>8/side</b> Lateral lunges</li>
-    <li><b>10/side</b> Calf raises + 3 slow heel drops</li>
-    <li><b>6/side</b> Skater bounds (easy) — wake up lateral push-off</li>
-    <li><b>20s</b> Split-steps + a few shuffles & backpedals</li>
-  </ul>
-  <button class="btn" data-act="close">Got it</button>`);
+function warmupSheet(){
+  const moves=WARMUP.map((m,i)=>{
+    const d=DOC[m.id];
+    return `<div class="wcard">
+      <div class="whead"><span class="wnum">${i+1}</span><div><div class="wname">${m.name}</div><div class="wdose">${m.dose}</div></div></div>
+      ${docBlock(m.id)}
+      <a class="vid" href="${vidHref(m.vid)}" target="_blank" rel="noopener" style="margin-top:4px;display:inline-block">${vidLabel(m.vid)}</a>
+    </div>`;
+  }).join("");
+  openSheet(`<h3>Pre-Pickleball Warm-Up</h3>
+  <p>Most 50+ pickleball injuries happen <b>cold, on the first explosive move</b> — 68% of Achilles ruptures strike within a player's first month, many on the first game. Run through this every time, building easy → fast: <b>raise your temperature, mobilize, then prime quick movements.</b></p>
+  ${moves}
+  <button class="btn" data-act="close" style="margin-top:6px">Got it — let's play</button>`);
 }
 function safetySheet(){ openSheet(`
   <h3>Safety & how-to</h3>
