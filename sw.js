@@ -1,5 +1,5 @@
 /* Unlocked — service worker (offline app shell, cache-first) */
-const CACHE = "unlocked-v1";
+const CACHE = "unlocked-v2";
 const ASSETS = [
   "./",
   "./index.html",
